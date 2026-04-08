@@ -1,0 +1,53 @@
+version: '3.8'
+services:
+  api:
+    build: .
+    ports:
+      - "8000:8000"
+    depends_on:
+      - postgres
+      - redis
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+  postgres:
+    image: postgres:15
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=training
+      - POSTGRES_PASSWORD=training
+      - POSTGRES_DB=training
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U training"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+  redis:
+    image: redis:7
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+  mongo:
+    image: mongo:6
+    healthcheck:
+      test: ["CMD", "mongo", "—eval", "db.runCommand({ping:1})"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+  celery-worker:
+    build: .
+    command: celery -A TrainingAPI.app.tasks.celery_app.celery_app worker --loglevel=info
+    depends_on:
+      - redis
+  celery-beat:
+    build: .
+    command: celery -A TrainingAPI.app.tasks.celery_app.celery_app beat --loglevel=info
+    depends_on:
+      - redis
+
+volumes:
+  postgres_data:
+    driver: local
