@@ -59,7 +59,7 @@ async def analyze_book_owner_activity(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Book not found")
     try:
         async_result = celery_app.send_task(
-            "TrainingAPI.app.tasks.user_activity_tasks.analyze_user_activity",
+            "app.tasks.user_activity_tasks.analyze_user_activity",
             args=[current_user.id],
         )
     except Exception as exc:

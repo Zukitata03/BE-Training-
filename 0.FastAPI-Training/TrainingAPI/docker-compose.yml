@@ -1,4 +1,3 @@
-version: '3.8'
 services:
   api:
     build: .
@@ -8,8 +7,13 @@ services:
       - postgres
       - redis
     environment:
-      - DATABASE_URL=${DATABASE_URL}
-      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+      - DATABASE_URL=${DATABASE_URL:-postgresql+asyncpg://training:training@postgres:5432/training}
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379/0}
+      - MONGO_URL=${MONGO_URL:-mongodb://mongo:27017}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY:-CHANGE_ME_IN_PROD}
+      - BLOCKCHAIN_RPC_URL=${BLOCKCHAIN_RPC_URL:-https://eth.llamarpc.com}
+      - BLOCKCHAIN_RPC_URLS=${BLOCKCHAIN_RPC_URLS:-https://eth.llamarpc.com,https://rpc.ankr.com/eth}
+      - BLOCKCHAIN_MAX_INDEX_BLOCK_SPAN=${BLOCKCHAIN_MAX_INDEX_BLOCK_SPAN:-10000}
   postgres:
     image: postgres:15
     volumes:
@@ -33,20 +37,35 @@ services:
   mongo:
     image: mongo:6
     healthcheck:
-      test: ["CMD", "mongo", "—eval", "db.runCommand({ping:1})"]
+      test: ["CMD", "mongosh", "--eval", "db.runCommand({ping:1})"]
       interval: 15s
       timeout: 5s
       retries: 3
   celery-worker:
     build: .
-    command: celery -A TrainingAPI.app.tasks.celery_app.celery_app worker --loglevel=info
+    command: celery -A app.tasks.celery_app.celery_app worker --loglevel=info
     depends_on:
       - redis
+      - postgres
+    environment:
+      - DATABASE_URL=${DATABASE_URL:-postgresql+asyncpg://training:training@postgres:5432/training}
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379/0}
+      - MONGO_URL=${MONGO_URL:-mongodb://mongo:27017}
+      - BLOCKCHAIN_RPC_URL=${BLOCKCHAIN_RPC_URL:-https://eth.llamarpc.com}
+      - BLOCKCHAIN_RPC_URLS=${BLOCKCHAIN_RPC_URLS:-https://eth.llamarpc.com,https://rpc.ankr.com/eth}
+      - BLOCKCHAIN_MAX_INDEX_BLOCK_SPAN=${BLOCKCHAIN_MAX_INDEX_BLOCK_SPAN:-10000}
   celery-beat:
     build: .
-    command: celery -A TrainingAPI.app.tasks.celery_app.celery_app beat --loglevel=info
+    command: celery -A app.tasks.celery_app.celery_app beat --loglevel=info
     depends_on:
       - redis
+    environment:
+      - DATABASE_URL=${DATABASE_URL:-postgresql+asyncpg://training:training@postgres:5432/training}
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379/0}
+      - MONGO_URL=${MONGO_URL:-mongodb://mongo:27017}
+      - BLOCKCHAIN_RPC_URL=${BLOCKCHAIN_RPC_URL:-https://eth.llamarpc.com}
+      - BLOCKCHAIN_RPC_URLS=${BLOCKCHAIN_RPC_URLS:-https://eth.llamarpc.com,https://rpc.ankr.com/eth}
+      - BLOCKCHAIN_MAX_INDEX_BLOCK_SPAN=${BLOCKCHAIN_MAX_INDEX_BLOCK_SPAN:-10000}
 
 volumes:
   postgres_data:

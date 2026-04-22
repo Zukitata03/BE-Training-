@@ -5,7 +5,11 @@ from fastapi.security import OAuth2PasswordRequestForm
 from ...core.database import get_db
 from ...core.security import create_access_token, create_refresh_token, decode_token
 from ...schemas.user import Token, TokenRefresh, UserCreate, UserLogin
-from ...services.auth_service import AuthService
+from ...services.auth_service import (
+    AuthService,
+    EmailAlreadyRegisteredError,
+    InvalidPasswordError,
+)
 from ...services.notification_service import log_new_user_registered
 
 router = APIRouter()
@@ -20,8 +24,10 @@ async def register(
     service = AuthService(db)
     try:
         await service.register_user(payload)
-    except ValueError as exc:
+    except EmailAlreadyRegisteredError as exc:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc)) from exc
+    except InvalidPasswordError as exc:
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(exc)) from exc
     background_tasks.add_task(log_new_user_registered, payload.email)
     return {"message": "User registered successfully"}
 

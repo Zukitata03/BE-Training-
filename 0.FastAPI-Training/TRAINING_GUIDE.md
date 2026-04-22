@@ -105,11 +105,11 @@ Use the Day 2 prompt from PROMPT_LIBRARY.md. Add role-based access control (admi
 Use the Day 3 prompt from PROMPT_LIBRARY.md. Add a task that sends a notification when a large transaction is detected.
 
 ### Review checklist (15 min)
-- [ ] Celery tasks are idempotent (safe to run multiple times)
-- [ ] Tasks have `max_retries` to handle transient failures
-- [ ] No blocking code in FastAPI endpoints (use BackgroundTasks or Celery)
-- [ ] Task failures are logged, not silently swallowed
-- [ ] Beat schedule uses reasonable intervals (not every 1 second)
+- [X] Celery tasks are idempotent (safe to run multiple times)
+- [X] Tasks have `max_retries` to handle transient failures
+- [X] No blocking code in FastAPI endpoints (use BackgroundTasks or Celery)
+- [X] Task failures are logged, not silently swallowed
+- [X] Beat schedule uses reasonable intervals (not every 1 second)
 
 ---
 

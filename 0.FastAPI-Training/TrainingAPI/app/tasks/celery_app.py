@@ -9,8 +9,8 @@ celery_app = Celery(
     broker=config.redis_url,
     backend=config.redis_url,
     include=[
-        "TrainingAPI.app.tasks.blockchain_tasks",
-        "TrainingAPI.app.tasks.user_activity_tasks",
+        "app.tasks.blockchain_tasks",
+        "app.tasks.user_activity_tasks",
     ],
 )
 
@@ -22,13 +22,18 @@ celery_app.conf.update(
     enable_utc=True,
     beat_schedule={
         "poll-blockchain-events": {
-            "task": "TrainingAPI.app.tasks.blockchain_tasks.poll_events",
+            "task": "app.tasks.blockchain_tasks.poll_events",
             "schedule": 30.0,
         },
         "notify-large-transactions": {
-            "task": "TrainingAPI.app.tasks.blockchain_tasks.notify_large_transactions",
+            "task": "app.tasks.blockchain_tasks.notify_large_transactions",
             "schedule": 60.0,
             "args": (100,),
+        },
+        "monitor-large-transactions": {
+            "task": "app.tasks.blockchain_tasks.monitor_large_transactions",
+            "schedule": 60.0,
+            "kwargs": {"min_value_eth": 10.0},
         },
     },
 )

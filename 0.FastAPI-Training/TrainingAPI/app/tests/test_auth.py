@@ -20,6 +20,14 @@ async def test_register_duplicate(client):
 
 
 @pytest.mark.anyio
+async def test_register_password_too_long(client):
+    payload = {"email": "longpass@example.com", "password": "a" * 73}
+    resp = await client.post("/api/v1/auth/register", json=payload)
+    assert resp.status_code == 422
+    assert "72 bytes" in str(resp.json())
+
+
+@pytest.mark.anyio
 async def test_login_success(client):
     await client.post(
         "/api/v1/auth/register",

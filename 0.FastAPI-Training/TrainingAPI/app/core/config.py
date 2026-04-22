@@ -25,9 +25,13 @@ class Settings(BaseSettings):
     access_token_expire_minutes: int = 15
     refresh_token_expire_days: int = 7
 
-    # Blockchain
-    blockchain_rpc_url: str = "https://bsc-dataseed.binance.org"
-    blockchain_chain_id: int = 56
+    # Blockchain (use blockchain_rpc_urls comma-separated to rotate / failover when rate-limited)
+    blockchain_rpc_url: str = "https://eth.llamarpc.com"
+    blockchain_rpc_urls: str = ""
+    blockchain_chain_id: int = 1
+    # Cap /blockchain/index range — public RPCs reject huge eth_getLogs spans
+    blockchain_max_index_block_span: int = 10_000
+    blockchain_get_logs_chunk_size: int = 2_000
 
 
 def get_config() -> Settings:
